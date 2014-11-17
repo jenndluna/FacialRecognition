@@ -33,7 +33,7 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	 public void callPhotoPage(){
-	    	Intent gamePageIntent = new Intent(this, FaceScan.class);
+	    	Intent gamePageIntent = new Intent(this, FoodScan.class);
 	    	startActivity(gamePageIntent);
 	    
 	    }

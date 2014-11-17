@@ -7,10 +7,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.media.FaceDetector;
-import android.media.FaceDetector.Face;
+/*import android.media.FaceDetector;
+import android.media.FaceDetector.Face;*/
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,18 +20,19 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class FaceScan extends ActionBarActivity{
+public class FoodScan extends ActionBarActivity{
 	
-	private static final int MAX_FACES = 1;
+	/*private static final int MAX_FACES = 10;*/
 	ImageView ivThumbnailPhoto;
     Bitmap bitMap;
     static int TAKE_PICTURE = 1;
     Button analyzePhotoBtn;
-
+    int[] pixels;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_face_scan);
+		setContentView(R.layout.activity_food_scan);
 		
 		ivThumbnailPhoto = (ImageView) findViewById(R.id.ivThumbnailPhoto);
 		
@@ -97,19 +99,37 @@ public class FaceScan extends ActionBarActivity{
  
         }
         
-        //see if any faces register
-        findFace();
+        //see if we can find food colors
+        findFood();
     }
     
-    public void findFace()
+    public void findFood()
     {
+    	pixels = new int[bitMap.getWidth() * bitMap.getHeight()];
+    	bitMap.getPixels(pixels, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
     	
-    	BitmapFactory.Options bitmap_options = new BitmapFactory.Options();		 
+    	//testing with first pixel, will loop thru and calculate percentages
+    	//todo: implement color pie chart, and touch event on picture to show individual stats
+    	int alpha = Color.alpha(pixels[0]);
+        int red = Color.red(pixels[0]);
+        int blue = Color.blue(pixels[0]);
+        int green = Color.green(pixels[0]);
+        String color = String.format("#%02X%02X%02X%02X", alpha, red, green, blue);
+        Log.i("RGB", color);
+
+    	
+    	/*BitmapFactory.Options bitmap_options = new BitmapFactory.Options();		 
     	bitmap_options.inPreferredConfig = Bitmap.Config.RGB_565;
     	
     	Bitmap convertedBitmap = convert(bitMap, Bitmap.Config.RGB_565);
+    	int width = convertedBitmap.getWidth(); //width must be even!
+    	int height = convertedBitmap.getHeight();
     	
-    	FaceDetector face_detector = new FaceDetector(
+    	
+    	
+    	
+    	//old face code
+    	/*FaceDetector face_detector = new FaceDetector(
     			convertedBitmap.getWidth(), convertedBitmap.getHeight(),	 
     		          MAX_FACES);
     		 		
@@ -117,7 +137,7 @@ public class FaceScan extends ActionBarActivity{
     		 
     	int face_count = face_detector.findFaces(bitMap, faces);
     	
-    	if(face_count == 1)
+    	if(face_count > 0)
     	{
     		Toast.makeText(getApplicationContext(), "Face found!",
      			   Toast.LENGTH_LONG).show();
@@ -125,7 +145,7 @@ public class FaceScan extends ActionBarActivity{
     		//make analyze button visible
     		analyzePhotoBtn.setEnabled(true);
     		analyzePhotoBtn.setText("Analyze my face!");
-    	}
+    	}*/
     		 	
     }
     
@@ -136,6 +156,7 @@ public class FaceScan extends ActionBarActivity{
     }
     
     private Bitmap convert(Bitmap bitmap, Bitmap.Config config) {
+    	//Object mybitmapss = BitmapFactory.decodeResource(getResources(), R.drawable.familyportrait2,bitmapFatoryOptions);
         Bitmap convertedBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), config);
         Canvas canvas = new Canvas(convertedBitmap);
         Paint paint = new Paint();

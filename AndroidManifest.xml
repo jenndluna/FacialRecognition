@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FaceScan"
+            android:name=".FoodScan"
             android:label="@string/title_activity_face_scan" >
         </activity>
     </application>
