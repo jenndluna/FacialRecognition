@@ -1,4 +1,6 @@
-package com.facialrecognitionapp.mobilecomputing;
+package com.foodrecognitionapp.mobilecomputing;
+
+import com.facialrecognitionapp.mobilecomputing.R;
 
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;

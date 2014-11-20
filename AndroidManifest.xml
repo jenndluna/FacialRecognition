@@ -11,10 +11,10 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Food Coloring"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name="com.foodrecognitionapp.mobilecomputing.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FoodScan"
+            android:name="com.foodrecognitionapp.mobilecomputing.FoodScan"
             android:label="@string/title_activity_face_scan" >
         </activity>
     </application>

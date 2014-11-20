@@ -1,4 +1,6 @@
-package com.facialrecognitionapp.mobilecomputing;
+package com.foodrecognitionapp.mobilecomputing;
+
+import com.facialrecognitionapp.mobilecomputing.R;
 
 import android.support.v7.app.ActionBarActivity;
 import android.content.Intent;
@@ -28,6 +30,7 @@ public class FoodScan extends ActionBarActivity{
     static int TAKE_PICTURE = 1;
     Button analyzePhotoBtn;
     int[] pixels;
+    int redPixels, greenPixels, whitePixels = 0;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,10 +102,25 @@ public class FoodScan extends ActionBarActivity{
  
         }
         
-        //see if we can find food colors
-        findFood();
     }
     
+    public String getRGBColor(int alpha, int red, int green, int blue)
+    {
+    	return String.format("#%02X%02X%02X%02X", alpha, red, green, blue);
+    }
+    
+    public int getColorBucket(int red, int green, int blue)
+    {
+    	if(red > 100 && red <= 255)
+    	{
+    		redPixels++;
+    		return Color.RED;
+    	}
+    	
+    	return Color.BLACK;
+    }
+    
+    //put on next screen after process button pressed
     public void findFood()
     {
     	pixels = new int[bitMap.getWidth() * bitMap.getHeight()];
@@ -114,45 +132,28 @@ public class FoodScan extends ActionBarActivity{
         int red = Color.red(pixels[0]);
         int blue = Color.blue(pixels[0]);
         int green = Color.green(pixels[0]);
-        String color = String.format("#%02X%02X%02X%02X", alpha, red, green, blue);
-        Log.i("RGB", color);
+        String testcolor = getRGBColor(alpha, red, green, blue);
+        Log.i("RGB", testcolor);
 
-    	
-    	/*BitmapFactory.Options bitmap_options = new BitmapFactory.Options();		 
-    	bitmap_options.inPreferredConfig = Bitmap.Config.RGB_565;
-    	
-    	Bitmap convertedBitmap = convert(bitMap, Bitmap.Config.RGB_565);
-    	int width = convertedBitmap.getWidth(); //width must be even!
-    	int height = convertedBitmap.getHeight();
-    	
-    	
-    	
-    	
-    	//old face code
-    	/*FaceDetector face_detector = new FaceDetector(
-    			convertedBitmap.getWidth(), convertedBitmap.getHeight(),	 
-    		          MAX_FACES);
-    		 		
-    	Face[] faces = new FaceDetector.Face[MAX_FACES];	 
-    		 
-    	int face_count = face_detector.findFaces(bitMap, faces);
-    	
-    	if(face_count > 0)
+    	//loop through pixels, put into buckets and change pixel to highlight on screen after bucketed     
+    	for(int i = 0; i < pixels.length; i++)
     	{
-    		Toast.makeText(getApplicationContext(), "Face found!",
-     			   Toast.LENGTH_LONG).show();
+    		int colorBucket = getColorBucket(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
+    		pixels[i] = colorBucket;
     		
-    		//make analyze button visible
-    		analyzePhotoBtn.setEnabled(true);
-    		analyzePhotoBtn.setText("Analyze my face!");
-    	}*/
-    		 	
+    	}
+    	
+    	//reset pixels to bucketed values
+    	bitMap.setPixels(pixels, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());  	 		 	
     }
     
     public void analyzePhoto()
     {
-    	Toast.makeText(getApplicationContext(), "analyzed!!! =)",
-    			   Toast.LENGTH_LONG).show();
+    	/*Toast.makeText(getApplicationContext(), "analyzed!!! =)",
+    			   Toast.LENGTH_LONG).show();*/
+    	
+    	//see if we can find food colors
+        findFood();
     }
     
     private Bitmap convert(Bitmap bitmap, Bitmap.Config config) {
