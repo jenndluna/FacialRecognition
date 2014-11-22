@@ -1,11 +1,19 @@
 package com.foodrecognitionapp.mobilecomputing;
 
-import com.facialrecognitionapp.mobilecomputing.R;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import android.support.v7.app.ActionBarActivity;
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.model.CategorySeries;
+import org.achartengine.renderer.DefaultRenderer;
+import org.achartengine.renderer.SimpleSeriesRenderer;
+
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -13,6 +21,7 @@ import android.graphics.Paint;
 import android.media.FaceDetector.Face;*/
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,17 +29,27 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.LinearLayout;
+
+import com.facialrecognitionapp.mobilecomputing.R;
+import com.facialrecognitionapp.mobilecomputing.ResultActivity;
 
 public class FoodScan extends ActionBarActivity{
 	
 	/*private static final int MAX_FACES = 10;*/
 	ImageView ivThumbnailPhoto;
     Bitmap bitMap;
-    static int TAKE_PICTURE = 1;
+    static final int TAKE_PICTURE = 1;
+    static int TOON_LEVEL = 2;
     Button analyzePhotoBtn;
     int[] pixels;
     int redPixels, greenPixels, whitePixels = 0;
+    Map<Integer, Integer> colorHistogram;
+    
+
+    
+    
+    
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +58,8 @@ public class FoodScan extends ActionBarActivity{
 		
 		ivThumbnailPhoto = (ImageView) findViewById(R.id.ivThumbnailPhoto);
 		
+
+        
 		//set button click listener
 		Button btn = (Button)findViewById(R.id.photoButton);
 		analyzePhotoBtn = (Button)findViewById(R.id.analyzeButton);
@@ -50,6 +71,23 @@ public class FoodScan extends ActionBarActivity{
         		takePhoto();     
         	}
        });
+        
+        colorHistogram = new HashMap<Integer, Integer>();
+//        NumberPicker numPick = (NumberPicker)findViewById( R.id.toonLevel);
+//        numPick.setMaxValue(10);
+//        numPick.setMinValue(2);
+//        numPick.setValue(4);
+//        numPick.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);        
+//        numPick.setOnValueChangedListener( new OnValueChangeListener() 
+//        {
+//			
+//			@Override
+//			public void onValueChange(NumberPicker picker, int oldVal, int newVal) 
+//			{
+//				TOON_LEVEL = newVal;		
+//				analyzePhoto();
+//			}
+//		});
         
         analyzePhotoBtn.setOnClickListener(new OnClickListener() {
         	@Override
@@ -98,10 +136,14 @@ public class FoodScan extends ActionBarActivity{
  
             // get bitmap
             bitMap = (Bitmap) extras.get("data");
-            ivThumbnailPhoto.setImageBitmap(bitMap);
- 
+            setThumbnail( bitMap );
         }
         
+    }
+    
+    private void setThumbnail( Bitmap aBitmap )
+    {
+    	ivThumbnailPhoto.setImageBitmap(aBitmap);
     }
     
     public String getRGBColor(int alpha, int red, int green, int blue)
@@ -111,13 +153,35 @@ public class FoodScan extends ActionBarActivity{
     
     public int getColorBucket(int red, int green, int blue)
     {
-    	if(red > 100 && red <= 255)
+    	if( red > 100 && red <= 255 )
     	{
     		redPixels++;
     		return Color.RED;
     	}
     	
     	return Color.BLACK;
+    }
+    
+    private int toonSegment( int aIn, int aSegCount )
+    {
+    	int theJump = 255 / aSegCount;
+    	for( int i = 0; i <= 255; i+= theJump )
+    	{
+    		if( aIn > (i) && aIn < i+theJump )
+    		{
+    			return Math.min(i+theJump, 255);
+    		}
+    	}
+    	return 0;
+    }
+    
+    private int toonShade(int red, int green, int blue)
+    {
+    	red = toonSegment(red, TOON_LEVEL);
+    	green = toonSegment(green, TOON_LEVEL);
+    	blue = toonSegment(blue, TOON_LEVEL);
+    	return Color.rgb(red, green, blue);
+    	
     }
     
     //put on next screen after process button pressed
@@ -138,13 +202,26 @@ public class FoodScan extends ActionBarActivity{
     	//loop through pixels, put into buckets and change pixel to highlight on screen after bucketed     
     	for(int i = 0; i < pixels.length; i++)
     	{
-    		int colorBucket = getColorBucket(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
+    		int colorBucket = toonShade(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));// getColorBucket(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
     		pixels[i] = colorBucket;
-    		
+    		Integer theColorKey = colorBucket;
+    		if( colorHistogram.containsKey( theColorKey ))
+    		{
+    			Integer theCount = colorHistogram.get(theColorKey);
+    			theCount++;
+    			colorHistogram.put(theColorKey,  theCount );
+    		}
+    		else
+    		{
+    			colorHistogram.put( theColorKey, 1 );
+    		}
     	}
     	
     	//reset pixels to bucketed values
-    	bitMap.setPixels(pixels, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());  	 		 	
+    	Bitmap theCopy = bitMap.copy(bitMap.getConfig(), true );
+    	theCopy.setPixels(pixels, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());  	
+    	setThumbnail( theCopy );
+
     }
     
     public void analyzePhoto()
@@ -154,6 +231,34 @@ public class FoodScan extends ActionBarActivity{
     	
     	//see if we can find food colors
         findFood();
+    	drawPie();
+    }
+    
+    public void drawPie()
+    {
+    	int count = colorHistogram.keySet().size();
+    	
+    	double[] VALUES = new double[count];
+    	int[] COLORS = new int[count];
+    	String[] NAME_LIST = new String[count];
+        Iterator<Entry<Integer, Integer>> it = colorHistogram.entrySet().iterator();
+        while (it.hasNext()) 
+        {
+            Entry<Integer, Integer> pairs = it.next();
+            --count;
+            VALUES[count] = (Integer) pairs.getValue();
+            COLORS[count] = (Integer)pairs.getKey();
+            NAME_LIST[count] = "AHHH";
+            
+            it.remove(); // avoids a ConcurrentModificationException
+        }        
+        Bundle theX = new Bundle();
+		theX.putIntArray("COLORS", COLORS);
+		theX.putDoubleArray("VALUES", VALUES);
+		theX.putStringArray("NAMES", NAME_LIST);
+    	Intent resultPageIntent = new Intent(this, ResultActivity.class);
+    	resultPageIntent.putExtras( theX );
+    	startActivity(resultPageIntent);
     }
     
     private Bitmap convert(Bitmap bitmap, Bitmap.Config config) {

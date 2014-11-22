@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="11"
         android:targetSdkVersion="21" />
 
     <application
@@ -25,6 +25,10 @@
         <activity
             android:name="com.foodrecognitionapp.mobilecomputing.FoodScan"
             android:label="@string/title_activity_face_scan" >
+        </activity>
+        <activity
+            android:name=".ResultActivity"
+            android:label="@string/title_activity_result" >
         </activity>
     </application>
 
