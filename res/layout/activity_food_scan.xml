@@ -26,37 +26,44 @@
         android:layout_marginTop="50dp"
         android:src="@drawable/abc_list_longpressed_holo" />
 
-    <LinearLayout 
+    <LinearLayout
+        android:id="@+id/analysisControls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_alignParentBottom="true"
-	    android:layout_centerHorizontal="true"
-	    android:id="@+id/analysisControls"
-        >
-	    <Button
-	        android:id="@+id/analyzeButton"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_marginBottom="18dp"
-	        android:clickable="false"
-	        android:text="Find Colors" />
-<!-- 	    <NumberPicker 
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/analyzeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:layout_weight="0.65"
+            android:clickable="false"
+            android:text="Find Real Colors" />
+
+        <!--
+     	    <NumberPicker 
 	        android:id="@+id/toonLevel"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        />-->
-	    
-	</LinearLayout>
-	
+	        />
+        -->
+
         <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/analysisControls"
-        android:layout_centerHorizontal="true"
-        android:text="Step 2: Find food colors in your photo"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="or"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <Button
+            android:id="@+id/buttonBucketColors"
+            android:layout_width="127dp"
+            android:layout_height="wrap_content"
+            android:text="Bucketed Colors" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/photoButton"
@@ -66,5 +73,15 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:text="take photo" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/analysisControls"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
+        android:text="Step 2: Find food colors in your photo"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

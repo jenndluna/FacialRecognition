@@ -3,6 +3,7 @@ package com.foodrecognitionapp.mobilecomputing;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -42,14 +43,11 @@ public class FoodScan extends ActionBarActivity{
     static final int TAKE_PICTURE = 1;
     static int TOON_LEVEL = 2;
     Button analyzePhotoBtn;
+    Button analyzeBucketPhotoBtn;
     int[] pixels;
-    int redPixels, greenPixels, whitePixels = 0;
+    List<ColorBucket> colorList;
     Map<Integer, Integer> colorHistogram;
-    
-
-    
-    
-    
+   
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,12 +56,14 @@ public class FoodScan extends ActionBarActivity{
 		
 		ivThumbnailPhoto = (ImageView) findViewById(R.id.ivThumbnailPhoto);
 		
-
-        
+		
+		       
 		//set button click listener
 		Button btn = (Button)findViewById(R.id.photoButton);
 		analyzePhotoBtn = (Button)findViewById(R.id.analyzeButton);
-	       
+		Button analyzeBucketsBtn = (Button)findViewById(R.id.buttonBucketColors);
+		
+				
         btn.setOnClickListener(new OnClickListener() {
         	@Override
         	public void onClick(View v) {
@@ -73,6 +73,10 @@ public class FoodScan extends ActionBarActivity{
        });
         
         colorHistogram = new HashMap<Integer, Integer>();
+      //set up color list
+      	colorList = new ArrayList<ColorBucket>(3);
+      	colorList =	setListItems();
+      		
 //        NumberPicker numPick = (NumberPicker)findViewById( R.id.toonLevel);
 //        numPick.setMaxValue(10);
 //        numPick.setMinValue(2);
@@ -93,11 +97,41 @@ public class FoodScan extends ActionBarActivity{
         	@Override
         	public void onClick(View v) {
 				// TODO Auto-generated method stub
-        		analyzePhoto();     
+        		analyzePhoto("real");     
+        	}
+       });
+        
+        analyzeBucketsBtn.setOnClickListener(new OnClickListener() {
+        	@Override
+        	public void onClick(View v) {
+				// TODO Auto-generated method stub
+        		analyzePhoto("buckets");     
         	}
        });
 	}
-
+	
+	public List<ColorBucket> setListItems()
+	{
+		//red
+		
+		ColorBucket red = new ColorBucket();	
+		red.colorName = "red";
+		red.colorValue = 0xFF0000;
+		colorList.add(red);
+		//green
+		ColorBucket green = new ColorBucket();	
+		green.colorName = "green";
+		green.colorValue = 0xFFDF00;
+		colorList.add(green);
+		//white
+		ColorBucket white = new ColorBucket();	
+		white.colorName = "white";
+		white.colorValue = 0xFFFFFF;
+		colorList.add(white);
+		
+		return colorList;
+	}
+		
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -150,18 +184,7 @@ public class FoodScan extends ActionBarActivity{
     {
     	return String.format("#%02X%02X%02X%02X", alpha, red, green, blue);
     }
-    
-    public int getColorBucket(int red, int green, int blue)
-    {
-    	if( red > 100 && red <= 255 )
-    	{
-    		redPixels++;
-    		return Color.RED;
-    	}
-    	
-    	return Color.BLACK;
-    }
-    
+      
     private int toonSegment( int aIn, int aSegCount )
     {
     	int theJump = 255 / aSegCount;
@@ -185,7 +208,7 @@ public class FoodScan extends ActionBarActivity{
     }
     
     //put on next screen after process button pressed
-    public void findFood()
+    public void findFood(String type)
     {
     	pixels = new int[bitMap.getWidth() * bitMap.getHeight()];
     	bitMap.getPixels(pixels, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
@@ -202,7 +225,9 @@ public class FoodScan extends ActionBarActivity{
     	//loop through pixels, put into buckets and change pixel to highlight on screen after bucketed     
     	for(int i = 0; i < pixels.length; i++)
     	{
-    		int colorBucket = toonShade(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));// getColorBucket(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
+    		int mappedColor = getMappedColor(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
+    		//check if real color or bucket
+    		int colorBucket = type == "real" ? toonShade(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i])) : toonShade(Color.red(mappedColor), Color.green(mappedColor), Color.blue(mappedColor));
     		pixels[i] = colorBucket;
     		Integer theColorKey = colorBucket;
     		if( colorHistogram.containsKey( theColorKey ))
@@ -224,13 +249,40 @@ public class FoodScan extends ActionBarActivity{
 
     }
     
-    public void analyzePhoto()
+    //find closest distance from this rgb to our static list of rgbs
+    public int getMappedColor(int x, int y, int z)
+    {
+    	double shortestDistance = 100000000;
+    	int color = 0;
+    	
+    	
+    	for(ColorBucket i : colorList)
+    	{
+    		//calculate distance from this point to value in list
+    		double d = getDistance(x,y,z,i.colorValue);
+    		if(d < shortestDistance)
+    		{
+    			shortestDistance = d;
+    			color = i.colorValue;
+    		}
+    	}
+    	
+    	return color;
+    }
+    
+    public double getDistance(int x, int y, int z, int color)
+    {
+    	//find euclidean distance of color and xyz of our mapped color
+    	return Math.sqrt(Math.pow((x - Color.red(color)), 2) + Math.pow((x - Color.green(color)), 2) + Math.pow((x - Color.blue(color)), 2));
+    }
+    
+    public void analyzePhoto(String type)
     {
     	/*Toast.makeText(getApplicationContext(), "analyzed!!! =)",
     			   Toast.LENGTH_LONG).show();*/
     	
     	//see if we can find food colors
-        findFood();
+        findFood(type);
     	drawPie();
     }
     
@@ -269,5 +321,13 @@ public class FoodScan extends ActionBarActivity{
         paint.setColor(Color.BLACK);
         canvas.drawBitmap(bitmap, 0, 0, paint);
         return convertedBitmap;
+    }
+    
+    //our colors
+    public class ColorBucket
+    {
+    	String colorName;
+    	int colorValue;
+    	
     }
 }
