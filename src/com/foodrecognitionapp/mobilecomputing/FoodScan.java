@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,7 +48,7 @@ public class FoodScan extends ActionBarActivity{
     int[] pixels;
     List<ColorBucket> colorList;
     Map<Integer, Integer> colorHistogram;
-   
+    Map<Integer, String> colorToNutrientMap;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +74,7 @@ public class FoodScan extends ActionBarActivity{
        });
         
         colorHistogram = new HashMap<Integer, Integer>();
+        
       //set up color list
       	colorList = new ArrayList<ColorBucket>(3);
       	colorList =	setListItems();
@@ -213,23 +215,27 @@ public class FoodScan extends ActionBarActivity{
     	pixels = new int[bitMap.getWidth() * bitMap.getHeight()];
     	bitMap.getPixels(pixels, 0, bitMap.getWidth(), 0, 0, bitMap.getWidth(), bitMap.getHeight());
     	
-    	//testing with first pixel, will loop thru and calculate percentages
-    	//todo: implement color pie chart, and touch event on picture to show individual stats
-    	int alpha = Color.alpha(pixels[0]);
-        int red = Color.red(pixels[0]);
-        int blue = Color.blue(pixels[0]);
-        int green = Color.green(pixels[0]);
-        String testcolor = getRGBColor(alpha, red, green, blue);
-        Log.i("RGB", testcolor);
+    	//this is for mapping the toon color values found to nutrients
+    	colorToNutrientMap = new HashMap<Integer, String>();
 
     	//loop through pixels, put into buckets and change pixel to highlight on screen after bucketed     
     	for(int i = 0; i < pixels.length; i++)
     	{
-    		int mappedColor = getMappedColor(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
+    		Pair<Integer, String> colorIntNamePair = getMappedColor(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
+    		//int mappedColor = getMappedColor(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i]));
     		//check if real color or bucket
-    		int colorBucket = type == "real" ? toonShade(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i])) : toonShade(Color.red(mappedColor), Color.green(mappedColor), Color.blue(mappedColor));
+    		
+    		int colorBucket = type == "real" ? toonShade(Color.red(pixels[i]), Color.green(pixels[i]), Color.blue(pixels[i])) : toonShade(Color.red(colorIntNamePair.first), Color.green(colorIntNamePair.first), Color.blue(colorIntNamePair.first));
     		pixels[i] = colorBucket;
     		Integer theColorKey = colorBucket;
+    		
+    		//for mapping toon color values to string color names
+    		if(!colorToNutrientMap.containsKey(theColorKey))
+    		{
+    			colorToNutrientMap.put(theColorKey, colorIntNamePair.second);
+    		}
+    		
+    		
     		if( colorHistogram.containsKey( theColorKey ))
     		{
     			Integer theCount = colorHistogram.get(theColorKey);
@@ -250,11 +256,11 @@ public class FoodScan extends ActionBarActivity{
     }
     
     //find closest distance from this rgb to our static list of rgbs
-    public int getMappedColor(int x, int y, int z)
+    public Pair<Integer, String> getMappedColor(int x, int y, int z)
     {
     	double shortestDistance = 100000000;
     	int color = 0;
-    	
+    	String name = "";
     	
     	for(ColorBucket i : colorList)
     	{
@@ -264,10 +270,11 @@ public class FoodScan extends ActionBarActivity{
     		{
     			shortestDistance = d;
     			color = i.colorValue;
-    		}
+    			name = i.colorName;
+    		}	
     	}
     	
-    	return color;
+    	return new Pair<Integer, String>(color, name);
     }
     
     public double getDistance(int x, int y, int z, int color)
@@ -300,7 +307,10 @@ public class FoodScan extends ActionBarActivity{
             --count;
             VALUES[count] = (Integer) pairs.getValue();
             COLORS[count] = (Integer)pairs.getKey();
-            NAME_LIST[count] = "AHHH";
+            
+            //get nutrient from DB
+            //right now will jsut show color name, hook up to DB next jdl here
+            NAME_LIST[count] = colorToNutrientMap.get((Integer)pairs.getKey());
             
             it.remove(); // avoids a ConcurrentModificationException
         }        
