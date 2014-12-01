@@ -98,8 +98,8 @@ public class ResultActivity extends ActionBarActivity {
 			mRenderer.setApplyBackgroundColor(true);
 	        mRenderer.setBackgroundColor(Color.argb(100, 50, 50, 50));
 	        mRenderer.setChartTitleTextSize(20);
-	        mRenderer.setLabelsTextSize(15);
-	        mRenderer.setLegendTextSize(15);
+	        mRenderer.setLabelsTextSize(40);
+	        mRenderer.setLegendTextSize(40);
 	        mRenderer.setMargins(new int[] { 20, 30, 15, 0 });
 	        mRenderer.setZoomButtonsVisible(true);
 	        mRenderer.setStartAngle(90);

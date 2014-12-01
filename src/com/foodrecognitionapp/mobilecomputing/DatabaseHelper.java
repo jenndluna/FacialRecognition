@@ -37,7 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	//todo pass in color, pull nutrients
 	public ArrayList<String> getNutrients( SQLiteDatabase aDb, String color, String foodGroup )
 	{
-		String theQuery = "SELECT " + ColorDB.COLUMN_NUTRIENT + " FROM " + ColorDB.TABLE_NAME + " WHERE " + ColorDB.COLUMN_COLOR + "= \"" + color + "\"";;
+		String theQuery = "SELECT DISTINCT " + ColorDB.COLUMN_NUTRIENT + " FROM " + ColorDB.TABLE_NAME + " WHERE " + ColorDB.COLUMN_COLOR + "= \"" + color + "\"";;
 		Cursor c = aDb.rawQuery( theQuery, null );
 		ArrayList<String> theNutrients = new ArrayList<String>();
 		if (c.moveToFirst()) {
@@ -67,6 +67,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	@Override
 	public void onCreate( SQLiteDatabase aDb )
 	{
+		aDb.execSQL(SQL_DELETE_ENTRIES);
 		aDb.execSQL(SQL_CREATE_NUTRIENT_ENTRIES);
 	}
 

@@ -49,6 +49,7 @@ public class FoodScan extends ActionBarActivity{
     List<ColorBucket> colorList;
     Map<Integer, Integer> colorHistogram;
     Map<Integer, String> colorToNutrientMap;
+    public DatabaseHelper mDBHelper;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -114,8 +115,7 @@ public class FoodScan extends ActionBarActivity{
 	
 	public List<ColorBucket> setListItems()
 	{
-		//red
-		
+		//red		
 		ColorBucket red = new ColorBucket();	
 		red.colorName = "red";
 		red.colorValue = 0xFF0000;
@@ -130,6 +130,31 @@ public class FoodScan extends ActionBarActivity{
 		white.colorName = "white";
 		white.colorValue = 0xFFFFFF;
 		colorList.add(white);
+		//yellow
+		ColorBucket yellow = new ColorBucket();	
+		yellow.colorName = "yellow";
+		yellow.colorValue = 0xFFDF00;
+		colorList.add(yellow);
+		//yellow_green
+		ColorBucket yellow_green = new ColorBucket();	
+		yellow_green.colorName = "yellow_green";
+		yellow_green.colorValue = 0xADFF2F;
+		colorList.add(yellow_green);
+		//blue_purple
+		ColorBucket blue_purple = new ColorBucket();	
+		blue_purple.colorName = "blue_purple";
+		blue_purple.colorValue = 0x8F49E6;
+		colorList.add(blue_purple);
+		//orange
+		ColorBucket orange = new ColorBucket();	
+		orange.colorName = "orange";
+		orange.colorValue = 0xFF9900;
+		colorList.add(orange);
+		//orange_yellow
+		ColorBucket orange_yellow = new ColorBucket();	
+		orange_yellow.colorName = "orange";
+		orange_yellow.colorValue = 0xFFAE42;
+		colorList.add(orange_yellow);
 		
 		return colorList;
 	}
@@ -280,7 +305,7 @@ public class FoodScan extends ActionBarActivity{
     public double getDistance(int x, int y, int z, int color)
     {
     	//find euclidean distance of color and xyz of our mapped color
-    	return Math.sqrt(Math.pow((x - Color.red(color)), 2) + Math.pow((x - Color.green(color)), 2) + Math.pow((x - Color.blue(color)), 2));
+    	return Math.sqrt(Math.pow((x - Color.red(color)), 2) + Math.pow((y - Color.green(color)), 2) + Math.pow((z - Color.blue(color)), 2));
     }
     
     public void analyzePhoto(String type)
@@ -301,6 +326,9 @@ public class FoodScan extends ActionBarActivity{
     	int[] COLORS = new int[count];
     	String[] NAME_LIST = new String[count];
         Iterator<Entry<Integer, Integer>> it = colorHistogram.entrySet().iterator();
+        mDBHelper = new DatabaseHelper( this );
+        List<String> list = new ArrayList<String>();
+        
         while (it.hasNext()) 
         {
             Entry<Integer, Integer> pairs = it.next();
@@ -310,7 +338,16 @@ public class FoodScan extends ActionBarActivity{
             
             //get nutrient from DB
             //right now will jsut show color name, hook up to DB next jdl here
-            NAME_LIST[count] = colorToNutrientMap.get((Integer)pairs.getKey());
+            String colorName = colorToNutrientMap.get((Integer)pairs.getKey());
+            list = mDBHelper.getNutrients(mDBHelper.getWritableDatabase(), colorName, "vegetable"); //only vegetable group for now
+            String colorTitle = colorToNutrientMap.get((Integer)pairs.getKey()) + "\nNutrients: ";
+            
+            for(String i : list)
+            {
+            	colorTitle += i + ",";
+            }
+            
+            NAME_LIST[count] = colorTitle;
             
             it.remove(); // avoids a ConcurrentModificationException
         }        
@@ -333,7 +370,7 @@ public class FoodScan extends ActionBarActivity{
         return convertedBitmap;
     }
     
-    //our colors
+    //our colors object
     public class ColorBucket
     {
     	String colorName;
